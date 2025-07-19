@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+<name>Ajuste Bank Transfer</name>
+<code>Ajuste Bank Transfer</code>
+<version>1.0.0.0</version>
+<author>Opencart Master</author>
+<link>https://opencartmaster.com.br</link>
+
+
+<file path="catalog/view/theme/default/template/extension/payment/bank_transfer.tpl">
+<operation error="skip">
+<search trim="true"><![CDATA[<h2><?php echo $text_instruction; ?></h2>]]></search>
+<add position="before"><![CDATA[<div style="display:none;">]]></add>
+</operation>
+
+<operation error="skip">
+<search trim="true"><![CDATA[<div class="buttons">]]></search>
+<add position="before"><![CDATA[</div>]]></add>
+</operation>
+
+</file>
+
+<file path="catalog/view/theme/*/template/common/success.tpl">
+<operation error="skip">
+<search trim="true"><![CDATA[<?php echo $text_message; ?>]]></search>
+<add position="after"><![CDATA[
+<?php if ($bancot) { ?>
+<hr>
+<?php echo $instr; ?>
+<?php } ?>
+]]></add>
+</operation>
+</file>
+
+<file path="catalog/controller/checkout/success.php">
+<operation error="skip">
+<search trim="true"><![CDATA[if (isset($this->session->data['order_id'])) {]]></search>
+<add position="before"><![CDATA[
+$this->load->model('account/order');
+    if (isset($this->session->data['order_id'])) {
+    $data['bancot'] = true;
+    $order_info = $this->model_account_order->getOrder($this->session->data['order_id']);
+    
+		if ($order_info && $order_info['payment_code'] == 'bank_transfer') {
+    $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_history` WHERE order_id = '" . (int)$order_info['order_id'] . "'");
+    $data['instr'] = $query->row['comment'];
+    } else {
+    $data['bancot'] = false;
+    $data['instr'] = "";
+    }
+    
+    } else {
+    $data['bancot'] = false;
+    }
+
+]]></add>
+</operation>
+
+</file>
+
+</modification>
